@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://anudip.railway.internal/api',
+  baseURL: 'http://anudip-production.up.railway.app/api',
 });
 
 api.interceptors.request.use((config) => {
