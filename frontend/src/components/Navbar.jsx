@@ -41,10 +41,10 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex gap-6 items-center text-sm">
-          <Link to={dashboardRoute} className="hover:text-white transition">Dashboard</Link>
+          <Link to={dashboardRoute} className="text-white hover:text-white transition">Dashboard</Link>
 
           {user?.role === 'Employee' && (
-            <Link to="/bookings" className="hover:text-white transition">My Bookings</Link>
+            <Link to="/bookings" className="text-white hover:text-white transition">My Bookings</Link>
           )}
 
           <button
