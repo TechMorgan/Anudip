@@ -34,17 +34,17 @@ export default function Navbar() {
         {/* App Title */}
         <Link
           to={dashboardRoute}
-          className="text-xl font-bold tracking-wide hover:text-white"
+          className="text-xl text-white font-bold tracking-wide hover:text-white"
         >
-          📅 Meeting Room App
+         Meeting Room App 📅
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex gap-6 items-center text-sm">
-          <Link to={dashboardRoute} className="hover:text-gray-200 transition">Dashboard</Link>
+          <Link to={dashboardRoute} className="hover:text-white transition">Dashboard</Link>
 
           {user?.role === 'Employee' && (
-            <Link to="/bookings" className="hover:text-gray-200 transition">My Bookings</Link>
+            <Link to="/bookings" className="hover:text-white transition">My Bookings</Link>
           )}
 
           <button
