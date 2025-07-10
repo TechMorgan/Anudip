@@ -9,7 +9,11 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://meetingbookapp.vercel.app',
+  credentials: true
+}));
+
 
 // MySQL Connection
 const db = mysql.createConnection({
