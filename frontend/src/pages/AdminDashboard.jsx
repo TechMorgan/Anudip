@@ -20,7 +20,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const now = new Date();
-    const todayDate = now.toISOString().split('T')[0]; // format: "YYYY-MM-DD"
     const stats = { upcoming: 0, ongoing: 0, past: 0 };
 
     async function fetchData() {
@@ -31,12 +30,7 @@ export default function AdminDashboard() {
           api.get('/rooms'),
         ]);
 
-        const todayBookings = bookingsRes.data.filter(b => {
-          const startDate = new Date(b.start_time).toISOString().split('T')[0];
-          return startDate === todayDate;
-        });
-
-        todayBookings.forEach(b => {
+        bookingsRes.data.forEach(b => {
           const start = new Date(b.start_time);
           const end = new Date(b.end_time);
           if (end < now) stats.past++;
@@ -44,7 +38,7 @@ export default function AdminDashboard() {
           else stats.ongoing++;
         });
 
-        setBookings(todayBookings.sort((a, b) => new Date(b.start_time) - new Date(a.start_time)));
+        setBookings(bookingsRes.data.sort((a, b) => new Date(b.start_time) - new Date(a.start_time)));
         setUsers(usersRes.data);
         setRooms(roomsRes.data);
         setChartData(stats);
@@ -58,6 +52,12 @@ export default function AdminDashboard() {
 
   const getUsername = (id) => users.find(u => u.id === id)?.username || `User #${id}`;
   const getRoomName = (id) => rooms.find(r => r.id === id)?.name || `Room #${id}`;
+
+  const todayDate = new Date().toISOString().split('T')[0];
+  const todayBookings = bookings.filter(b => {
+    const startDate = new Date(b.start_time).toISOString().split('T')[0];
+    return startDate === todayDate;
+  });
 
   const doughnutData = {
     labels: ['Upcoming', 'Ongoing', 'Past'],
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
               />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                 <p className="text-2xl font-bold text-gray-800">{bookings.length}</p>
-                <p className="text-xs text-gray-500">Today’s Bookings</p>
+                <p className="text-xs text-gray-500">Total Bookings</p>
               </div>
             </div>
 
@@ -143,13 +143,13 @@ export default function AdminDashboard() {
 
       {/* 📅 Recent Bookings List */}
       <div className="bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">🕘 Today’s Bookings</h2>
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">🕘 Recent Bookings (Today)</h2>
 
-        {bookings.length === 0 ? (
+        {todayBookings.length === 0 ? (
           <p className="text-gray-500">No bookings today.</p>
         ) : (
           <ul className="divide-y">
-            {bookings.slice(0, 5).map(b => {
+            {todayBookings.slice(0, 5).map(b => {
               const now = new Date();
               const start = new Date(b.start_time);
               const end = new Date(b.end_time);
