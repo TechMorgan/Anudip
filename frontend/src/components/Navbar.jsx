@@ -80,7 +80,7 @@ export default function Navbar() {
             <li>
               <Link
                 to={dashboardRoute}
-                className="block hover:text-gray-200"
+                className="block hover:text-gray-200 text-white"
                 onClick={() => setMobileOpen(false)}
               >
                 Dashboard
@@ -91,7 +91,7 @@ export default function Navbar() {
               <li>
                 <Link
                   to="/bookings"
-                  className="block hover:text-gray-200"
+                  className="block hover:text-gray-200 text-white"
                   onClick={() => setMobileOpen(false)}
                 >
                   My Bookings
