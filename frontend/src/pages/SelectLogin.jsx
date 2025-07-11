@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-
+import jwtDecode from 'jwt-decode'; // ✅ Fix the import syntax
 
 export default function SelectLogin() {
   const navigate = useNavigate();
@@ -10,16 +9,17 @@ export default function SelectLogin() {
     const token = localStorage.getItem('jwtToken');
     if (token) {
       try {
-        const decoded = jwt_decode(token);
-        if (decoded.role === 'admin') {
-          navigate('/admin-dashboard');
-        } else if (decoded.role === 'employee') {
-          navigate('/dashboard');
+        const decoded = jwtDecode(token);
+        const role = decoded?.role;
+
+        if (role === 'Admin') {
+          navigate('/admin-dashboard', { replace: true });
+        } else if (role === 'Employee') {
+          navigate('/dashboard', { replace: true });
         }
-      } catch (err) {
-        console.error('Invalid token:', err);
-        // Optionally clear invalid token
-        localStorage.removeItem('jwtToken');
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('jwtToken'); // Clean up if token is broken
       }
     }
   }, [navigate]);
