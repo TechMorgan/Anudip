@@ -8,21 +8,33 @@ import MyBookings from './MyBookings';
 export default function Dashboard() {
   const [rooms, setRooms] = useState([]);
   const [selectedTab, setSelectedTab] = useState('dashboard');
+  const [tabHistory, setTabHistory] = useState([]);
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     api.get('/rooms').then((res) => setRooms(res.data));
   }, []);
 
+  const changeTab = (newTab) => {
+    setTabHistory((prev) => [...prev, selectedTab]); // save current tab
+    setSelectedTab(newTab);
+  };
+
+  const goBack = () => {
+    setTabHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const lastTab = prev[prev.length - 1];
+      setSelectedTab(lastTab);
+      return prev.slice(0, -1); // remove last
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex">
       {/* Desktop Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 p-6 space-y-6 shadow-sm hidden md:block">
         <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Menu</h2>
-        <SidebarMenu
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-        />
+        <SidebarMenu selectedTab={selectedTab} setSelectedTab={changeTab} />
       </aside>
 
       {/* Mobile Sidebar Popup */}
@@ -38,7 +50,7 @@ export default function Dashboard() {
             <SidebarMenu
               selectedTab={selectedTab}
               setSelectedTab={(tab) => {
-                setSelectedTab(tab);
+                changeTab(tab);
                 setMobileMenuOpen(false);
               }}
             />
@@ -70,6 +82,16 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Back Button */}
+        {tabHistory.length > 0 && selectedTab !== 'dashboard' && (
+          <button
+            onClick={goBack}
+            className="mb-4 inline-block bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+          >
+            ← Back
+          </button>
+        )}
+
         {/* Conditional Content */}
         {selectedTab === 'dashboard' ? (
           <div className="max-w-7xl mx-auto space-y-16">
@@ -98,7 +120,6 @@ export default function Dashboard() {
                   <Link
                     to={`/book?room_id=${room.id}`}
                     className="inline-block w-full text-center bg-[#EAA64D] hover:bg-[#d88e3a] text-black px-4 py-2 rounded-lg font-medium shadow-md transition"
-
                   >
                     Book Room
                   </Link>
