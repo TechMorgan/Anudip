@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Allow only your frontend origin
 app.use(cors({
-  origin: ['https://meetingbookapp.vercel.app', 'http://localhost:5000'],
+  origin: ['https://meetingbookapp.vercel.app', 'http://localhost:5173'],
   credentials: true,
 }));
 
