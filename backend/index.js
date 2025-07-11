@@ -9,10 +9,15 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+
+// Allow only your frontend origin
 app.use(cors({
   origin: 'https://meetingbookapp.vercel.app',
-  credentials: true
+  credentials: true,
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 
 // MySQL Connection
