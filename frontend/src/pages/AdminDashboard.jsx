@@ -125,30 +125,38 @@ export default function AdminDashboard() {
       </div>
 
       {/* 📅 Recent Bookings */}
-      <div className="bg-white p-6 rounded-xl shadow-md">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">🕘 Recent Bookings</h2>
-        {bookings.slice(0, 5).length === 0 ? (
-          <p className="text-gray-500">No recent bookings.</p>
-        ) : (
-          <ul className="divide-y">
-            {bookings.slice(0, 5).map(b => (
-              <li key={b.id} className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-gray-800 font-medium">
-                    Room: <span className="text-indigo-600">{b.room?.name || b.room_id}</span>
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {new Date(b.start_time).toLocaleString()} → {new Date(b.end_time).toLocaleString()}
-                  </p>
-                </div>
-                <span className="mt-2 sm:mt-0 bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">
-                  User: {b.user?.username || b.user_id}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* 📅 Recent Bookings */}
+<div className="bg-white p-6 rounded-xl shadow-md">
+  <h2 className="text-lg font-semibold text-gray-700 mb-4">Recent Bookings</h2>
+  {bookings.slice(0, 5).length === 0 ? (
+    <p className="text-gray-500">No recent bookings.</p>
+  ) : (
+    <div className="grid gap-4">
+      {bookings.slice(0, 5).map(b => (
+        <div
+          key={b.id}
+          className="bg-slate-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-all border border-slate-200"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-black">
+                {b.room?.name || b.room_id}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {new Date(b.start_time).toLocaleString()} &rarr;{' '}
+                {new Date(b.end_time).toLocaleString()}
+              </p>
+            </div>
+            <span className="mt-2 sm:mt-0 bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">
+              User: {b.user?.username || b.user_id}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
     </div>
   );
 }

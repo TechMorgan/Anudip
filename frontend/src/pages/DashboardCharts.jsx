@@ -69,12 +69,12 @@ export default function DashboardCharts() {
       {
         label: 'Bookings',
         data: dailyCounts.map(([_, count]) => count),
-        borderColor: '#3b82f6',
-        backgroundColor: '#bfdbfe',
+        borderColor: '#6366f1', // Indigo-500
+        backgroundColor: '#e0e7ff', // Indigo-100
         tension: 0.4,
         fill: true,
-        pointRadius: 3,
-        pointBackgroundColor: '#3b82f6',
+        pointRadius: 4,
+        pointBackgroundColor: '#4338ca', // Indigo-700
       },
     ],
   };
@@ -84,16 +84,16 @@ export default function DashboardCharts() {
     datasets: [
       {
         data: [statusCounts.upcoming, statusCounts.ongoing, statusCounts.past],
-        backgroundColor: ['#facc15', '#22c55e', '#9ca3af'],
+        backgroundColor: ['#f97316', '#10b981', '#94a3b8'], // Orange, Emerald, Slate
         cutout: '70%',
       },
     ],
   };
 
   const legendItems = [
-    { label: 'Upcoming', value: statusCounts.upcoming, color: '#facc15' },
-    { label: 'Ongoing', value: statusCounts.ongoing, color: '#22c55e' },
-    { label: 'Past', value: statusCounts.past, color: '#9ca3af' },
+    { label: 'Upcoming', value: statusCounts.upcoming, color: '#f97316' },
+    { label: 'Ongoing', value: statusCounts.ongoing, color: '#10b981' },
+    { label: 'Past', value: statusCounts.past, color: '#94a3b8' },
   ];
 
   return (

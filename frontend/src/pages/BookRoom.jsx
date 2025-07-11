@@ -66,10 +66,10 @@ export default function BookRoom() {
   const selectedRoom = rooms.find((r) => r.id.toString() === form.room_id);
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="min-h-screen bg-slate-100 font-inter p-6">
       <div className="max-w-xl mx-auto bg-white border border-slate-200 shadow-xl rounded-xl p-8">
         <h2 className="text-3xl font-bold mb-6 text-black text-center">
-          📆 Book a Meeting Room
+          Book a Meeting Room
         </h2>
 
         {message && (

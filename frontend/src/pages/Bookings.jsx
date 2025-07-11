@@ -52,7 +52,6 @@ export default function Bookings() {
   const getRoomName = (id) => rooms.find(r => r.id === id)?.name || 'Unknown';
   const getUserName = (id) => users.find(u => u.id === id)?.username || 'Unknown';
 
-  // Group bookings by date (based on start_time)
   const groupedBookings = bookings.reduce((acc, b) => {
     const date = new Date(b.start_time).toISOString().split('T')[0];
     if (!acc[date]) acc[date] = [];
@@ -61,65 +60,76 @@ export default function Bookings() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-black">📋 All Bookings</h2>
+          <h2 className="text-4xl font-bold text-gray-800">All Bookings</h2>
           <button
             onClick={() => setDeleteMode(!deleteMode)}
-            className={`px-4 py-2 rounded text-white font-medium shadow transition ${
-			  deleteMode
-				? 'bg-[#0F828C] hover:bg-[#d78d3c]'
-				: 'bg-[#0F828C] hover:bg-[#d78d3c]'
-			}`}
+            className={`px-5 py-2.5 rounded-xl font-semibold shadow-md transition-all duration-200 ${
+              deleteMode
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
             {deleteMode ? 'Exit Delete Mode' : 'Delete'}
           </button>
         </div>
 
-        {error && <p className="text-red-600 font-medium">{error}</p>}
+        {/* Error */}
+        {error && (
+          <div className="bg-red-100 text-red-700 px-4 py-3 rounded shadow">
+            {error}
+          </div>
+        )}
 
+        {/* Booking List */}
         {Object.keys(groupedBookings).length === 0 ? (
-          <p className="text-center text-gray-600">No bookings found.</p>
+          <p className="text-center text-gray-500 text-lg mt-10">No bookings found.</p>
         ) : (
           Object.entries(groupedBookings)
-            .sort((a, b) => new Date(a[0]) - new Date(b[0])) // sort by date ascending
+            .sort((a, b) => new Date(a[0]) - new Date(b[0]))
             .map(([date, bookingsForDate]) => (
-              <div key={date} className="bg-white/80 backdrop-blur-md rounded-lg shadow border border-gray-200">
-                <div className="bg-[#065084] text-white px-6 py-3 rounded-t font-semibold">
-				  📅 {new Date(date).toDateString()}
-				</div>
+              <div
+                key={date}
+                className="bg-white/80 backdrop-blur-md rounded-xl shadow-md border border-gray-200 overflow-hidden"
+              >
+                {/* Date Header */}
+                <div className="bg-[#065084] text-white px-6 py-4 text-lg font-semibold tracking-wide">
+                  {new Date(date).toDateString()}
+                </div>
 
-
+                {/* Table */}
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto">
-                    <thead className="bg-gray-50 text-gray-700 text-sm uppercase tracking-wider">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 text-sm text-gray-700 uppercase">
                       <tr>
-                        <th className="px-4 py-2 text-left">Room</th>
-                        <th className="px-4 py-2 text-left">User</th>
-                        <th className="px-4 py-2 text-left">Start</th>
-                        <th className="px-4 py-2 text-left">End</th>
-                        {deleteMode && <th className="px-4 py-2 text-left">Actions</th>}
+                        <th className="px-5 py-3 text-left">Room</th>
+                        <th className="px-5 py-3 text-left">User</th>
+                        <th className="px-5 py-3 text-left">Start</th>
+                        <th className="px-5 py-3 text-left">End</th>
+                        {deleteMode && <th className="px-5 py-3 text-left">Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {bookingsForDate.map((b, i) => (
                         <tr
                           key={b.id}
-                          className={`text-sm ${
+                          className={`${
                             i % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                          } hover:bg-indigo-50 transition`}
+                          } hover:bg-indigo-50 transition-all text-gray-800 text-sm`}
                         >
-                          <td className="px-4 py-3">{getRoomName(b.room_id)}</td>
-                          <td className="px-4 py-3">{getUserName(b.user_id)}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4">{getRoomName(b.room_id)}</td>
+                          <td className="px-5 py-4">{getUserName(b.user_id)}</td>
+                          <td className="px-5 py-4">
                             {new Date(b.start_time).toLocaleString()}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4">
                             {new Date(b.end_time).toLocaleString()}
                           </td>
                           {deleteMode && (
-                            <td className="px-4 py-3">
+                            <td className="px-5 py-4">
                               <button
                                 onClick={() => handleDelete(b.id)}
                                 className="text-red-600 hover:text-red-800 font-medium"
