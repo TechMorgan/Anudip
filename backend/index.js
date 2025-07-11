@@ -70,7 +70,11 @@ app.post('/api/login', (req, res) => {
     const user = results[0];
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).send('Invalid credentials');
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+	  { id: user.id, username: user.username, role: user.role, email: user.email },
+	  process.env.JWT_SECRET
+	);
+
     res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
   });
 });
@@ -106,6 +110,16 @@ app.get('/api/users', verifyToken, (req, res) => {
   });
 });
 
+// get current user
+app.get('/api/me', verifyToken, (req, res) => {
+  const userId = req.user.id;
+  db.query('SELECT id, username, role FROM Users WHERE id = ?', [userId], (err, results) => {
+    if (err) return res.status(500).send(err);
+    if (results.length === 0) return res.status(404).send('User not found');
+    res.json(results[0]);
+  });
+});
+
 
 // Employee: Book a room
 app.post('/api/bookings', verifyToken, (req, res) => {
@@ -132,29 +146,59 @@ app.get('/api/bookings', verifyToken, (req, res) => {
   const isAdmin = req.user.role === 'Admin';
 
   const query = isAdmin
-    ? 'SELECT * FROM Bookings'
-    : 'SELECT * FROM Bookings WHERE user_id = ?';
+    ? `SELECT 
+         b.*, 
+         u.username AS user_username, 
+         r.name AS room_name 
+       FROM Bookings b
+       JOIN Users u ON b.user_id = u.id
+       JOIN Rooms r ON b.room_id = r.id`
+    : `SELECT 
+         b.*, 
+         u.username AS user_username, 
+         r.name AS room_name 
+       FROM Bookings b
+       JOIN Users u ON b.user_id = u.id
+       JOIN Rooms r ON b.room_id = r.id
+       WHERE b.user_id = ?`;
 
   const params = isAdmin ? [] : [req.user.id];
 
   db.query(query, params, (err, results) => {
     if (err) return res.status(500).send(err);
-    res.json(results);
+
+    // Format results into nested objects
+    const formatted = results.map(b => ({
+      ...b,
+      user: { id: b.user_id, username: b.user_username },
+      room: { id: b.room_id, name: b.room_name },
+    }));
+
+    res.json(formatted);
   });
 });
+
 
 // Cancel a booking (only by the user who made it)
 app.delete('/api/bookings/:id', verifyToken, (req, res) => {
   const userId = req.user.id;
+  const isAdmin = req.user.role === 'Admin';
   const bookingId = req.params.id;
 
-  // Ensure the user owns this booking
-  db.query('DELETE FROM Bookings WHERE id = ? AND user_id = ?', [bookingId, userId], (err, result) => {
+  const query = isAdmin
+    ? 'DELETE FROM Bookings WHERE id = ?'
+    : 'DELETE FROM Bookings WHERE id = ? AND user_id = ?';
+
+  const params = isAdmin ? [bookingId] : [bookingId, userId];
+
+  db.query(query, params, (err, result) => {
     if (err) return res.status(500).send(err);
-    if (result.affectedRows === 0) return res.status(403).send('Unauthorized or booking not found');
+    if (result.affectedRows === 0)
+      return res.status(403).send('Unauthorized or booking not found');
     res.send('Booking cancelled');
   });
 });
+
 
 
 app.put('/api/rooms/:id', verifyToken, (req, res) => {
