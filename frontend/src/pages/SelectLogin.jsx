@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import jwtDecode from 'jwt-decode'; // ✅ Fix the import syntax
+import { jwtDecode } from 'jwt-decode'; // ✅ Fix the import syntax
 
 export default function SelectLogin() {
   const navigate = useNavigate();
