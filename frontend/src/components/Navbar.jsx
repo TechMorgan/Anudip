@@ -1,4 +1,3 @@
-// Navbar.js
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { useState, useRef, useEffect } from 'react';
@@ -40,7 +39,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white text-gray-800 shadow-md">
+    <nav className="sticky top-0 z-50 w-full bg-white text-gray-800 shadow-md font-inter">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
@@ -66,13 +65,12 @@ export default function Navbar() {
 
             {showProfile && (
               <div className="absolute right-0 mt-2 w-52 bg-white rounded shadow-lg p-4 text-sm z-10 text-center">
-				  <p className="text-gray-700 text-lg">
-					<strong>{user?.username || 'N/A'}</strong>
-				  </p>
-				  <p className="text-gray-700">
-					{user?.role}
-				  </p>
-				
+                <p className="text-gray-700 text-lg">
+                  <strong>{user?.username || 'N/A'}</strong>
+                </p>
+                <p className="text-gray-700">
+                  {user?.role}
+                </p>
 
                 <button
                   onClick={logout}
