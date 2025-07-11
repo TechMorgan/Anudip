@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://mysql-production-ee23.up.railway.app:33060/api',
+  baseURL: 'https://mysql-production-ee23.up.railway.app/api',
 });
 
 api.interceptors.request.use((config) => {
