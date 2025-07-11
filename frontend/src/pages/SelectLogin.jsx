@@ -12,9 +12,9 @@ export default function SelectLogin() {
         const decoded = jwtDecode(token);
         const role = decoded?.role;
 
-        if (role === 'Admin') {
+        if (role === 'admin') {
           navigate('/admin-dashboard', { replace: true });
-        } else if (role === 'Employee') {
+        } else if (role === 'employee') {
           navigate('/dashboard', { replace: true });
         }
       } catch (error) {
