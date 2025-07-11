@@ -1,7 +1,27 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jwt_decode from 'jwt-decode';
 
 export default function SelectLogin() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('jwtToken');
+    if (token) {
+      try {
+        const decoded = jwt_decode(token);
+        if (decoded.role === 'admin') {
+          navigate('/admin-dashboard');
+        } else if (decoded.role === 'employee') {
+          navigate('/dashboard');
+        }
+      } catch (err) {
+        console.error('Invalid token:', err);
+        // Optionally clear invalid token
+        localStorage.removeItem('jwtToken');
+      }
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center px-4">
