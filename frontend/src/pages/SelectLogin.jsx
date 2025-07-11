@@ -1,28 +1,38 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ✅ Fix the import syntax
+import { jwtDecode } from 'jwt-decode';
 
 export default function SelectLogin() {
   const navigate = useNavigate();
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem('token');
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        const role = decoded?.role;
+        const role = decoded.role?.toLowerCase();
 
         if (role === 'admin') {
-          navigate('/admin-dashboard', { replace: true });
+          navigate('/admin-dashboard');
         } else if (role === 'employee') {
-          navigate('/dashboard', { replace: true });
+          navigate('/dashboard');
+        } else {
+          setCheckingAuth(false); // unknown role, show page
         }
       } catch (error) {
         console.error('Invalid token:', error);
-        localStorage.removeItem('jwtToken'); // Clean up if token is broken
+        localStorage.removeItem('token');
+        setCheckingAuth(false);
       }
+    } else {
+      setCheckingAuth(false);
     }
   }, [navigate]);
+
+  if (checkingAuth) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center px-4">
