@@ -56,7 +56,7 @@ export default function MyBookings() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl text-black font-bold mb-6">📅 My Bookings</h2>
+        <h2 className="text-3xl text-black font-bold mb-6">History</h2>
 
         {message && (
           <div className="mb-4 text-center text-sm bg-green-100 text-green-700 px-4 py-2 rounded">

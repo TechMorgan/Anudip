@@ -10,6 +10,7 @@ export default function Rooms() {
     amenities: '',
   });
   const [editingRoomId, setEditingRoomId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [message, setMessage] = useState('');
 
   const fetchRooms = () => {
@@ -24,16 +25,15 @@ export default function Rooms() {
     e.preventDefault();
     try {
       if (editingRoomId) {
-        // Edit mode: update existing room
         await api.put(`/rooms/${editingRoomId}`, form);
         setMessage('✅ Room updated successfully!');
       } else {
-        // Add mode: create new room
         await api.post('/rooms', form);
         setMessage('✅ Room added successfully!');
       }
       setForm({ name: '', location: '', capacity: '', amenities: '' });
       setEditingRoomId(null);
+      setIsModalOpen(false);
       fetchRooms();
     } catch (err) {
       setMessage('❌ Failed to save room.');
@@ -48,13 +48,12 @@ export default function Rooms() {
       amenities: room.amenities,
     });
     setEditingRoomId(room.id);
+    setIsModalOpen(true);
     setMessage('');
   };
 
   const handleDelete = async (roomId) => {
-    const confirm = window.confirm('Are you sure you want to delete this room?');
-    if (!confirm) return;
-
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
     try {
       await api.delete(`/rooms/${roomId}`);
       setMessage('✅ Room deleted successfully!');
@@ -103,20 +102,8 @@ export default function Rooms() {
           required
         />
         <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          {editingRoomId ? 'Update Room' : 'Add Room'}
+          Add Room
         </button>
-        {editingRoomId && (
-          <button
-            type="button"
-            className="ml-4 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-            onClick={() => {
-              setEditingRoomId(null);
-              setForm({ name: '', location: '', capacity: '', amenities: '' });
-            }}
-          >
-            Cancel
-          </button>
-        )}
       </form>
 
       <div>
@@ -146,6 +133,68 @@ export default function Rooms() {
           ))}
         </ul>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Edit Room</h2>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Room Name"
+                className="w-full p-2 border rounded"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Location"
+                className="w-full p-2 border rounded"
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Capacity"
+                className="w-full p-2 border rounded"
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Amenities (comma-separated)"
+                className="w-full p-2 border rounded"
+                value={form.amenities}
+                onChange={(e) => setForm({ ...form, amenities: e.target.value })}
+                required
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setEditingRoomId(null);
+                    setForm({ name: '', location: '', capacity: '', amenities: '' });
+                  }}
+                  className="px-4 py-2 rounded bg-gray-400 hover:bg-gray-500 text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

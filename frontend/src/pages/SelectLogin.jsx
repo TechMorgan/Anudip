@@ -1,26 +1,7 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 
 export default function SelectLogin() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const user = jwtDecode(token);
-        if (user?.role === 'Admin') {
-          navigate('/admin-dashboard');
-        } else if (user?.role === 'Employee') {
-          navigate('/dashboard');
-        }
-      } catch (e) {
-        console.error('Invalid token. Clearing...');
-        localStorage.removeItem('token');
-      }
-    }
-  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center px-4">
