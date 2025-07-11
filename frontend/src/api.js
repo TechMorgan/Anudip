@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://anudip-production.up.railway.app/api',
+  baseURL: 'https://hopper.proxy.rlwy.net:59595/api',
 });
 
 api.interceptors.request.use((config) => {
