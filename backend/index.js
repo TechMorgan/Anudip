@@ -17,8 +17,7 @@ app.use(cors({
 }));
 
 // Handle preflight requests
-app.options('*', cors());
-
+app.options('/*all', cors());
 
 // MySQL Connection
 const db = mysql.createConnection({
