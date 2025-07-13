@@ -6,7 +6,15 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = token;
+
+  // Exclude token from /login and /register requests
+  const noAuthRoutes = ['/login', '/register', '/admin-login'];
+  const isAuthRoute = noAuthRoutes.some(route => config.url.endsWith(route));
+
+  if (token && !isAuthRoute) {
+    config.headers.Authorization = token;
+  }
+
   return config;
 });
 
