@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -25,7 +25,7 @@ export default function AdminLogin() {
         }
       } catch (err) {
         console.error('Invalid token:', err);
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
         setCheckingAuth(false);
       }
     } else {
@@ -35,16 +35,20 @@ export default function AdminLogin() {
 
   const submit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await api.post('/login', form);
-      const user = res.data.user;
-      if (user.role !== 'Admin') {
-        setError('Access denied. You are not an admin.');
+      const { user, token } = res.data;
+
+      if (user.role.toLowerCase() !== 'admin') {
+        setError('Access denied. Please use the employee login.');
         return;
       }
-      localStorage.setItem('token', res.data.token);
+
+      localStorage.setItem('accessToken', token);
       navigate('/admin-dashboard');
-    } catch {
+    } catch (err) {
+      console.error(err);
       setError('Login failed. Please check your credentials.');
     }
   };
@@ -63,19 +67,22 @@ export default function AdminLogin() {
         <h2 className="text-3xl font-extrabold text-center text-gray-800">
           Admin Login
         </h2>
+
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded text-sm text-center">
             {error}
           </div>
         )}
+
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="block text-gray-700 mb-1">Username</label>
             <input
               type="text"
               placeholder="Enter your username"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+              value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
           </div>
@@ -84,8 +91,9 @@ export default function AdminLogin() {
             <input
               type="password"
               placeholder="Enter your password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+              value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
           </div>
@@ -96,12 +104,13 @@ export default function AdminLogin() {
             Login
           </button>
         </form>
+
         <div className="text-center">
           <button
             onClick={() => navigate('/')}
             className="text-blue-600 hover:underline text-sm"
           >
-            ← Back to Home
+            ← Back to Login Selection
           </button>
         </div>
       </div>
