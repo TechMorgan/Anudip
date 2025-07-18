@@ -1,25 +1,22 @@
-// meeting-room-backend/index.js
-
 const express = require('express');
 const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
-// Allow only your frontend origin
+// CORS
 app.use(cors({
   origin: ['https://meetingbookapp.vercel.app', 'http://localhost:5173'],
   credentials: true,
 }));
 
-// Handle preflight requests
-app.options('/*all', cors());
-
-// MySQL Connection
+// DB
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -33,48 +30,45 @@ db.connect(err => {
   console.log('✅ Connected to MySQL');
 });
 
-// Middleware to verify JWT
+// TOKEN UTILS
+function generateAccessToken(user) {
+  return jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '15m' });
+}
+
+function generateRefreshToken(user) {
+  return jwt.sign(user, process.env.REFRESH_SECRET, { expiresIn: '7d' });
+}
+
+// Middleware
 function verifyToken(req, res, next) {
   const token = req.headers['authorization'];
   if (!token) return res.status(401).send('Token required');
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).send('Invalid token');
+    if (err) return res.status(403).send('Invalid or expired token');
     req.user = decoded;
     next();
   });
 }
 
-// User Registration
+// REGISTER
 app.post('/api/register', async (req, res) => {
   const { username, password, email, role } = req.body;
   try {
+    const hash = await bcrypt.hash(password, 10);
     db.query(
-      'SELECT * FROM Users WHERE email = ?',
-      [email],
-      async (err, results) => {
-        if (err) return res.status(500).send({ message: 'Database error' });
-
-        if (results.length > 0) {
-          return res.status(409).send({ message: 'Email already exists' });
-        }
-
-        const hash = await bcrypt.hash(password, 10);
-        db.query(
-          'INSERT INTO Users (username, password, email, role) VALUES (?, ?, ?, ?)',
-          [username, hash, email, role],
-          (err) => {
-            if (err) return res.status(500).send({ message: 'Failed to register user' });
-            res.status(201).send({ message: 'User registered successfully' });
-          }
-        );
+      'INSERT INTO Users (username, password, email, role) VALUES (?, ?, ?, ?)',
+      [username, hash, email, role],
+      (err) => {
+        if (err) return res.status(500).send(err);
+        res.send('User registered');
       }
     );
-  } catch (err) {
-    res.status(500).send({ message: 'Registration failed' });
+  } catch {
+    res.status(500).send('Registration failed');
   }
 });
 
-// User Login
+// LOGIN (shared for employee)
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   db.query('SELECT * FROM Users WHERE username = ?', [username], async (err, results) => {
@@ -82,14 +76,80 @@ app.post('/api/login', (req, res) => {
     const user = results[0];
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).send('Invalid credentials');
-    const token = jwt.sign(
-	  { id: user.id, username: user.username, role: user.role, email: user.email },
-	  process.env.JWT_SECRET
-	);
 
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+    const userPayload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email
+    };
+
+    const accessToken = generateAccessToken(userPayload);
+    const refreshToken = generateRefreshToken(userPayload);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.json({ accessToken, user: userPayload });
   });
 });
+
+// ADMIN LOGIN (strictly check role)
+app.post('/api/admin-login', (req, res) => {
+  const { username, password } = req.body;
+  db.query('SELECT * FROM Users WHERE username = ?', [username], async (err, results) => {
+    if (err || results.length === 0) return res.status(401).send('Invalid credentials');
+    const user = results[0];
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).send('Invalid credentials');
+
+    if (user.role !== 'Admin') return res.status(403).send('Not an admin');
+
+    const userPayload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email
+    };
+
+    const accessToken = generateAccessToken(userPayload);
+    const refreshToken = generateRefreshToken(userPayload);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.json({ accessToken, user: userPayload });
+  });
+});
+
+// Refresh Token
+app.post('/api/refresh-token', (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.status(401).send('Refresh token missing');
+
+  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.status(403).send('Invalid refresh token');
+
+    const accessToken = generateAccessToken({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email
+    });
+
+    res.json({ accessToken });
+  });
+});
+
 
 // Get all rooms
 app.get('/api/rooms', verifyToken, (req, res) => {
