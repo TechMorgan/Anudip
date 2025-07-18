@@ -14,6 +14,11 @@ export default function AdminLogin() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+		if (decoded.exp * 1000 < Date.now()) {
+		  localStorage.removeItem('accessToken');
+		  setCheckingAuth(false);
+		  return;
+		}
         const role = decoded.role?.toLowerCase();
 
         if (role === 'admin') {
@@ -36,16 +41,17 @@ export default function AdminLogin() {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
       const res = await api.post('/login', form);
-      const { user, token } = res.data;
+      const { user, accessToken } = res.data;
 
       if (user.role.toLowerCase() !== 'admin') {
         setError('Access denied. Please use the employee login.');
         return;
       }
 
-      localStorage.setItem('accessToken', token);
+      localStorage.setItem('accessToken', accessToken); // Ensure key is consistent across app
       navigate('/admin-dashboard');
     } catch (err) {
       console.error(err);
@@ -56,7 +62,7 @@ export default function AdminLogin() {
   if (checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <span className="text-gray-700 text-lg">Checking authentication...</span>
+        <span className="text-gray-700 text-lg">Loading...</span>
       </div>
     );
   }

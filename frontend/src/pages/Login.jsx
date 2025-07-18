@@ -14,6 +14,12 @@ export default function Login() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+		if (decoded.exp * 1000 < Date.now()) {
+		  localStorage.removeItem('accessToken');
+		  setCheckingAuth(false);
+		  return;
+		}
+
         const role = decoded.role?.toLowerCase();
 
         if (role === 'admin') {

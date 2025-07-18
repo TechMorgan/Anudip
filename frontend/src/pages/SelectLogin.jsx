@@ -7,28 +7,34 @@ export default function SelectLogin() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        const role = decoded.role?.toLowerCase();
+  const token = localStorage.getItem('accessToken'); // 🔧 Match the key used in login.jsx
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+	  if (decoded.exp * 1000 < Date.now()) {
+		  localStorage.removeItem('accessToken');
+		  setCheckingAuth(false);
+		  return;
+		}
+      const role = decoded.role?.toLowerCase();
 
-        if (role === 'admin') {
-          navigate('/admin-dashboard');
-        } else if (role === 'employee') {
-          navigate('/dashboard');
-        } else {
-          setCheckingAuth(false); // unknown role, show page
-        }
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('token');
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'employee') {
+        navigate('/dashboard');
+      } else {
         setCheckingAuth(false);
       }
-    } else {
+    } catch (error) {
+      console.error('Invalid token:', error);
+      localStorage.removeItem('accessToken');
       setCheckingAuth(false);
     }
-  }, [navigate]);
+  } else {
+    setCheckingAuth(false);
+  }
+}, [navigate]);
+
 
   if (checkingAuth) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;

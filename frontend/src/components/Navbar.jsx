@@ -8,7 +8,7 @@ export default function Navbar() {
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef(null);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   let user = null;
 
   try {
@@ -34,9 +34,10 @@ export default function Navbar() {
   if (hideNavbar) return null;
 
   const logout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
+  localStorage.removeItem('accessToken'); // ✅ clear correct token
+  navigate('/');
+};
+
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white text-gray-800 shadow-md font-inter">
