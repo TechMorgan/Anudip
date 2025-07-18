@@ -38,7 +38,7 @@ export default function Login() {
     setError('');
     try {
       const res = await api.post('/login', form);
-      const { user, token } = res.data;
+      const { user, accessToken } = res.data;
 
       // Only allow employee login via this form
       if (user.role.toLowerCase() !== 'employee') {
@@ -46,7 +46,7 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem('accessToken', token);
+      localStorage.setItem('accessToken', accessToken);
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
