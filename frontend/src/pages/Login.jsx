@@ -10,7 +10,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -25,7 +25,7 @@ export default function Login() {
         }
       } catch (error) {
         console.error('Invalid token:', error);
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
         setCheckingAuth(false);
       }
     } else {
@@ -35,12 +35,21 @@ export default function Login() {
 
   const submit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const res = await api.post('/login', form);
-      const user = res.data.user;
-      localStorage.setItem('token', res.data.token);
-      navigate(user.role === 'Admin' ? '/rooms' : '/dashboard');
-    } catch {
+      const { user, token } = res.data;
+
+      // Only allow employee login via this form
+      if (user.role.toLowerCase() !== 'employee') {
+        setError('Access denied. Use the admin login for admin access.');
+        return;
+      }
+
+      localStorage.setItem('accessToken', token);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
       setError('Login failed. Please check your credentials.');
     }
   };
@@ -56,7 +65,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="bg-white shadow-xl rounded-2xl w-full max-w-md p-8 space-y-6">
-        <h2 className="text-3xl font-extrabold text-center text-gray-800">Login</h2>
+        <h2 className="text-3xl font-extrabold text-center text-gray-800">Employee Login</h2>
 
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded text-sm text-center">
@@ -68,6 +77,7 @@ export default function Login() {
           <div>
             <label className="block text-gray-700 mb-1">Username</label>
             <input
+              type="text"
               placeholder="Enter your username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
@@ -98,6 +108,12 @@ export default function Login() {
           Don’t have an account?{' '}
           <Link to="/register" className="text-purple-600 hover:underline font-medium">
             Register here
+          </Link>
+        </p>
+
+        <p className="text-center text-xs text-gray-500">
+          <Link to="/" className="text-gray-400 hover:text-gray-700 underline">
+            ← Back to Login Selection
           </Link>
         </p>
       </div>
