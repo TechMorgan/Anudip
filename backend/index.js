@@ -148,7 +148,7 @@ app.post('/api/refresh-token', (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) return res.status(401).send('Refresh token missing');
 
-  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+  jwt.verify(token, process.env.REFRESH_SECRET, (err, user) => {
     if (err) return res.status(403).send('Invalid refresh token');
 
     const accessToken = generateAccessToken({
