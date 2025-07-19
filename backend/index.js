@@ -99,14 +99,16 @@ app.post('/api/login', (req, res) => {
     const accessToken = generateAccessToken(userPayload);
     const refreshToken = generateRefreshToken(userPayload);
 
-    const isProd = process.env.NODE_ENV === 'production';
-
+    const origin = req.headers.origin;
+    const isProd = origin === 'https://meetingbookapp.vercel.app';
+    
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: isProd, // ✅ true in production, false in dev
-      sameSite: isProd ? 'None' : 'Lax', // 'None' for cross-site prod, 'Lax' is safer for dev
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      secure: isProd,
+      sameSite: isProd ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
 
 
     res.json({ accessToken, user: userPayload });
