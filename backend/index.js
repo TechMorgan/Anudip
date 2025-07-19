@@ -99,17 +99,12 @@ app.post('/api/login', (req, res) => {
     const accessToken = generateAccessToken(userPayload);
     const refreshToken = generateRefreshToken(userPayload);
 
-    const origin = req.headers.origin;
-    const isProd = origin === 'https://meetingbookapp.vercel.app';
-    
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'None' : 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
-
-
 
     res.json({ accessToken, user: userPayload });
   });
@@ -311,15 +306,6 @@ app.delete('/api/rooms/:id', verifyToken, (req, res) => {
     if (err) return res.status(500).send(err);
     res.send('Room deleted');
   });
-});
-
-app.post('/api/logout', (req, res) => {
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
-  });
-  res.send('Logged out');
 });
 
 const PORT = process.env.PORT || 5000;
