@@ -11,7 +11,7 @@ export default function SelectLogin() {
 
   const tryRefresh = async () => {
     try {
-      const res = await fetch('/api/refresh-token', {
+      const res = await fetch('/refresh-token', {
         method: 'POST',
         credentials: 'include', // ✅ send cookie
       });
