@@ -312,5 +312,14 @@ app.delete('/api/rooms/:id', verifyToken, (req, res) => {
   });
 });
 
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: true,
+  });
+  res.sendStatus(200);
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
