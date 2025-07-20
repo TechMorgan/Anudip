@@ -18,7 +18,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('/*any', cors(corsOptions));
+app.options('/{*any}', cors(corsOptions));
 
 // DB
 const db = mysql.createConnection({
