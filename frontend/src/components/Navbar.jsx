@@ -33,10 +33,21 @@ export default function Navbar() {
   const hideNavbar = ['/', '/login', '/register', '/admin-login', '/select-login'].includes(location.pathname);
   if (hideNavbar) return null;
 
-  const logout = () => {
-  localStorage.removeItem('accessToken'); // ✅ clear correct token
+  const logout = async () => {
+  try {
+    await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include', // 👈 Needed to send the cookie
+    });
+  } catch (err) {
+    console.error('Logout failed:', err);
+    // even if it fails, fall through to clear local state
+  }
+
+  localStorage.removeItem('accessToken');
   navigate('/');
 };
+
 
 
   return (
