@@ -35,7 +35,7 @@ export default function Navbar() {
 
   const logout = async () => {
   try {
-    await fetch('http://localhost:5000/api/logout', {
+    await fetch('https://anudip-production.up.railway.app/api/logout', {
       method: 'POST',
       credentials: 'include', // 👈 Needed to send the cookie
     });
