@@ -14,7 +14,7 @@ export default function Login() {
 
   const tryRefresh = async () => {
     try {
-      const res = await api.post('/api/refresh-token');
+      const res = await api.post('/refresh-token');
       const newToken = res.data.accessToken;
 
       localStorage.setItem('accessToken', newToken);
