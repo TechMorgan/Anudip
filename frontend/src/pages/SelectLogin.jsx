@@ -1,25 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import api from '../api';
 
 export default function SelectLogin() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
 
- useEffect(() => {
-  const token = localStorage.getItem('accessToken');
-
+  // 🔄 Try to refresh the access token using the refresh token cookie
   const tryRefresh = async () => {
     try {
-      const res = await fetch('/refresh-token', {
-        method: 'POST',
-        credentials: 'include', // ✅ send cookie
-      });
-
-      if (!res.ok) throw new Error('Refresh failed');
-
-      const data = await res.json();
-      const newToken = data.accessToken;
+      const res = await api.post('/refresh-token');
+      const newToken = res.data.accessToken;
 
       localStorage.setItem('accessToken', newToken);
 
@@ -34,43 +26,49 @@ export default function SelectLogin() {
         setCheckingAuth(false);
       }
     } catch (err) {
-      console.error('Refresh error:', err);
+      console.error('🔁 Token refresh failed:', err);
       localStorage.removeItem('accessToken');
       setCheckingAuth(false);
     }
   };
 
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      if (decoded.exp * 1000 < Date.now()) {
-        // token expired
-        tryRefresh();
-      } else {
-        const role = decoded.role?.toLowerCase();
-        if (role === 'admin') {
-          navigate('/admin-dashboard');
-        } else if (role === 'employee') {
-          navigate('/dashboard');
+  // 🚦 Initial check on mount
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+
+        // Expired?
+        if (decoded.exp * 1000 < Date.now()) {
+          tryRefresh();
         } else {
-          setCheckingAuth(false);
+          const role = decoded.role?.toLowerCase();
+          if (role === 'admin') {
+            navigate('/admin-dashboard');
+          } else if (role === 'employee') {
+            navigate('/dashboard');
+          } else {
+            setCheckingAuth(false);
+          }
         }
+      } catch (err) {
+        console.error('🛑 Invalid access token:', err);
+        localStorage.removeItem('accessToken');
+        tryRefresh(); // Try to refresh anyway
       }
-    } catch (error) {
-      console.error('Invalid token:', error);
-      localStorage.removeItem('accessToken');
-      tryRefresh(); // attempt refresh on malformed token too
+    } else {
+      tryRefresh(); // No access token at all
     }
-  } else {
-    // No token at all — try to refresh using cookie
-    tryRefresh();
-  }
-}, [navigate]);
-
-
+  }, [navigate]);
 
   if (checkingAuth) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
