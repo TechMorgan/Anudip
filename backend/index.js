@@ -13,12 +13,12 @@ app.use(cookieParser());
 const corsOptions = {
   origin: ['https://meetingbookapp.vercel.app', 'http://localhost:5173'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // ✅ include OPTIONS
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // ✅ handle preflight
+app.options('/*any', cors(corsOptions));
 
 // DB
 const db = mysql.createConnection({
