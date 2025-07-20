@@ -35,7 +35,7 @@ export default function Navbar() {
 
   const logout = async () => {
   try {
-    await fetch('/api/logout', {
+    await fetch('http://localhost:5000/api/logout', {
       method: 'POST',
       credentials: 'include', // 👈 Needed to send the cookie
     });
