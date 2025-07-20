@@ -134,8 +134,8 @@ app.post('/api/admin-login', (req, res) => {
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'None',
+	  secure: false,
+      sameSite: 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -145,6 +145,10 @@ app.post('/api/admin-login', (req, res) => {
 
 // Refresh Token
 app.post('/api/refresh-token', (req, res) => {
+  console.log('🍪 Raw cookies:', req.headers.cookie);
+  console.log('🍪 Parsed cookies:', req.cookies);
+  console.log('🔑 Refresh token:', req.cookies.refreshToken);
+  
   const token = req.cookies.refreshToken;
   if (!token) return res.status(401).send('Refresh token missing');
 
