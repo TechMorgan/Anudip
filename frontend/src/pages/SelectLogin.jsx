@@ -6,16 +6,24 @@ export default function SelectLogin() {
   const navigate = useNavigate();
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  useEffect(() => {
-  const token = localStorage.getItem('accessToken'); // 🔧 Match the key used in login.jsx
-  if (token) {
+ useEffect(() => {
+  const token = localStorage.getItem('accessToken');
+
+  const tryRefresh = async () => {
     try {
-      const decoded = jwtDecode(token);
-	  if (decoded.exp * 1000 < Date.now()) {
-		  localStorage.removeItem('accessToken');
-		  setCheckingAuth(false);
-		  return;
-		}
+      const res = await fetch('/api/refresh-token', {
+        method: 'POST',
+        credentials: 'include', // ✅ send cookie
+      });
+
+      if (!res.ok) throw new Error('Refresh failed');
+
+      const data = await res.json();
+      const newToken = data.accessToken;
+
+      localStorage.setItem('accessToken', newToken);
+
+      const decoded = jwtDecode(newToken);
       const role = decoded.role?.toLowerCase();
 
       if (role === 'admin') {
@@ -25,15 +33,40 @@ export default function SelectLogin() {
       } else {
         setCheckingAuth(false);
       }
-    } catch (error) {
-      console.error('Invalid token:', error);
+    } catch (err) {
+      console.error('Refresh error:', err);
       localStorage.removeItem('accessToken');
       setCheckingAuth(false);
     }
+  };
+
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.exp * 1000 < Date.now()) {
+        // token expired
+        tryRefresh();
+      } else {
+        const role = decoded.role?.toLowerCase();
+        if (role === 'admin') {
+          navigate('/admin-dashboard');
+        } else if (role === 'employee') {
+          navigate('/dashboard');
+        } else {
+          setCheckingAuth(false);
+        }
+      }
+    } catch (error) {
+      console.error('Invalid token:', error);
+      localStorage.removeItem('accessToken');
+      tryRefresh(); // attempt refresh on malformed token too
+    }
   } else {
-    setCheckingAuth(false);
+    // No token at all — try to refresh using cookie
+    tryRefresh();
   }
 }, [navigate]);
+
 
 
   if (checkingAuth) {

@@ -10,15 +10,39 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-		if (decoded.exp * 1000 < Date.now()) {
-		  localStorage.removeItem('accessToken');
-		  setCheckingAuth(false);
-		  return;
-		}
+  const token = localStorage.getItem('accessToken');
+
+  const tryRefresh = async () => {
+    try {
+      const res = await api.post('/refresh-token');
+      const newToken = res.data.accessToken;
+      localStorage.setItem('accessToken', newToken);
+
+      const decoded = jwtDecode(newToken);
+      const role = decoded.role?.toLowerCase();
+
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'employee') {
+        navigate('/dashboard');
+      } else {
+        setCheckingAuth(false);
+      }
+    } catch (err) {
+      console.error('🔁 Refresh token failed:', err);
+      localStorage.removeItem('accessToken');
+      setCheckingAuth(false);
+    }
+  };
+
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+
+      if (decoded.exp * 1000 < Date.now()) {
+        // Token expired, try refresh
+        tryRefresh();
+      } else {
         const role = decoded.role?.toLowerCase();
 
         if (role === 'admin') {
@@ -28,15 +52,18 @@ export default function AdminLogin() {
         } else {
           setCheckingAuth(false);
         }
-      } catch (err) {
-        console.error('Invalid token:', err);
-        localStorage.removeItem('accessToken');
-        setCheckingAuth(false);
       }
-    } else {
-      setCheckingAuth(false);
+    } catch (err) {
+      console.error('Invalid token:', err);
+      localStorage.removeItem('accessToken');
+      tryRefresh(); // Try refresh if token is malformed
     }
-  }, [navigate]);
+  } else {
+    // No access token — try to refresh from cookie
+    tryRefresh();
+  }
+}, [navigate]);
+
 
   const submit = async (e) => {
     e.preventDefault();

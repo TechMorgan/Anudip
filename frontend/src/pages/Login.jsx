@@ -10,16 +10,40 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-		if (decoded.exp * 1000 < Date.now()) {
-		  localStorage.removeItem('accessToken');
-		  setCheckingAuth(false);
-		  return;
-		}
+  const token = localStorage.getItem('accessToken');
 
+  const tryRefresh = async () => {
+    try {
+      const res = await api.post('/api/refresh-token');
+      const newToken = res.data.accessToken;
+
+      localStorage.setItem('accessToken', newToken);
+
+      const decoded = jwtDecode(newToken);
+      const role = decoded.role?.toLowerCase();
+
+      if (role === 'admin') {
+        navigate('/admin-dashboard');
+      } else if (role === 'employee') {
+        navigate('/dashboard');
+      } else {
+        setCheckingAuth(false);
+      }
+    } catch (e) {
+      console.error('Auto refresh failed:', e);
+      localStorage.removeItem('accessToken');
+      setCheckingAuth(false);
+    }
+  };
+
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+
+      if (decoded.exp * 1000 < Date.now()) {
+        // Token expired, try to refresh
+        tryRefresh();
+      } else {
         const role = decoded.role?.toLowerCase();
 
         if (role === 'admin') {
@@ -29,15 +53,18 @@ export default function Login() {
         } else {
           setCheckingAuth(false);
         }
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('accessToken');
-        setCheckingAuth(false);
       }
-    } else {
+    } catch (error) {
+      console.error('Invalid token:', error);
+      localStorage.removeItem('accessToken');
       setCheckingAuth(false);
     }
-  }, [navigate]);
+  } else {
+    // No token — try to refresh anyway (in case cookie still exists)
+    tryRefresh();
+  }
+}, [navigate]);
+
 
   const submit = async (e) => {
     e.preventDefault();
