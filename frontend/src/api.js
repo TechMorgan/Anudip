@@ -12,13 +12,15 @@ const noAuthRoutes = ['/login', '/register', '/admin-login', '/refresh-token'];
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
 
-  // Extract pathname safely
   let pathname = '';
   try {
-    const url = new URL(config.url, api.defaults.baseURL);
-    pathname = url.pathname;
+    const fullUrl = new URL(
+      config.url,
+      config.url.startsWith('http') ? undefined : api.defaults.baseURL
+    );
+    pathname = fullUrl.pathname;
   } catch (e) {
-    console.warn('URL parse error in interceptor:', config.url);
+    console.warn('URL parse error:', config.url);
   }
 
   const isPublic = noAuthRoutes.some(route => pathname.endsWith(route));
@@ -28,10 +30,7 @@ api.interceptors.request.use((config) => {
   }
 
   return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
+}, (error) => Promise.reject(error));
 
 // ✅ RESPONSE INTERCEPTOR
 api.interceptors.response.use(
