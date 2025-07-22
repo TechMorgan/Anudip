@@ -58,10 +58,24 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error('🔁 Refresh token failed:', refreshError);
-        localStorage.removeItem('accessToken');
-        window.location.href = '/'; // Redirect to home or login
-      }
+  console.error('🔁 Refresh token failed:', refreshError);
+
+  // Optional: try refresh again after short delay
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5s
+    const retryRefresh = await api.post('/refresh-token');
+    const retryToken = retryRefresh.data.accessToken;
+
+    localStorage.setItem('accessToken', retryToken);
+    originalRequest.headers.Authorization = `Bearer ${retryToken}`;
+    return api(originalRequest);
+  } catch (secondError) {
+    console.error('🔁 Retry refresh failed:', secondError);
+    localStorage.removeItem('accessToken');
+    window.location.href = '/'; // force re-login
+  }
+}
+
     }
 
     return Promise.reject(err);
