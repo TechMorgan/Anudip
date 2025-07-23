@@ -65,20 +65,32 @@ function verifyToken(req, res, next) {
 // REGISTER
 app.post('/api/register', async (req, res) => {
   const { username, password, email, role } = req.body;
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    db.query(
-      'INSERT INTO Users (username, password, email, role) VALUES (?, ?, ?, ?)',
-      [username, hash, email, role],
-      (err) => {
-        if (err) return res.status(500).send(err);
-        res.send('User registered');
-      }
-    );
-  } catch {
-    res.status(500).send('Registration failed');
-  }
+
+  // Check for existing email
+  db.query('SELECT id FROM Users WHERE email = ?', [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error' });
+
+    if (results.length > 0) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Hash password and insert user
+    try {
+      const hash = await bcrypt.hash(password, 10);
+      db.query(
+        'INSERT INTO Users (username, password, email, role) VALUES (?, ?, ?, ?)',
+        [username, hash, email, role],
+        (err) => {
+          if (err) return res.status(500).json({ message: 'Registration failed' });
+          res.json({ message: 'User registered successfully' });
+        }
+      );
+    } catch {
+      res.status(500).json({ message: 'Registration failed' });
+    }
+  });
 });
+
 
 // LOGIN (shared for employee)
 app.post('/api/login', (req, res) => {
